@@ -1,0 +1,23 @@
+{
+  "name": "http-error",
+  "description": "create error object with http status code for express server",
+  "version": "1.0.0",
+  "author": "Ben P.P. Tung",
+  "bugs": {
+    "url": "https://github.com/benpptung/http-error/issues"
+  },
+  "homepage": "https://github.com/benpptung/http-error#readme",
+  "keywords": [
+    "error",
+    "express"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benpptung/http-error.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
