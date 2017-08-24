@@ -18,6 +18,11 @@
     "url": "git+https://github.com/benpptung/http-error.git"
   },
   "scripts": {
+    "eslint": "eslint . --ignore-pattern node_modules/",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "eslint-plugin-node": "^5.1.1"
   }
 }
