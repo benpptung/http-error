@@ -88,7 +88,7 @@ describe('HttpErr', () => {
       assert.strictEqual(err.msgs[0], 'Not Found')
     })
 
-    it('should have message equal to STATUS[status] and fixed at msgs[0]', () => {
+    it('should have message equal to STATUS[status] and fixed at msgs[0] if Not prefix with OnEr', () => {
       const err = HttpErr(403)
       assert.strictEqual(err.message, 'Forbidden')
       assert.strictEqual(err.msgs[0], 'Forbidden')
@@ -96,6 +96,15 @@ describe('HttpErr', () => {
       assert.strictEqual(err.message, 'Forbidden')
       assert.strictEqual(err.msgs[0], 'Forbidden')
       assert.deepStrictEqual(err.msgs, ['Forbidden', 'access denied', 'check permission'])
+    })
+
+    it('should respect original Error message if using OnEr<Name> error constructor', () => {
+      const e = new Error('not found')
+      const er = OnErNotFound(e)
+      assert.strictEqual(e, er)
+      assert.strictEqual(er.message, 'not found')
+      assert.strictEqual(er.msgs.length, 1)
+      assert.strictEqual(er.status, 404)
     })
 
     it('should have chainable methods m, f, c', () => {
