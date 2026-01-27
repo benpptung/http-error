@@ -1,5 +1,5 @@
 {
-  "name": "http-error",
+  "name": "@lvigil/http-error",
   "version": "2.0.0",
   "description": "HTTP Error based on @lvigil/err",
   "type": "module",
