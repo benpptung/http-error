@@ -1,6 +1,6 @@
 {
   "name": "@lvigil/http-error",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "HTTP Error based on @lvigil/err",
   "type": "module",
   "author": "Ben P.P. Tung",
