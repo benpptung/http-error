@@ -5,7 +5,7 @@ HTTP Error utilities based on [@lvigil/err](https://www.npmjs.com/package/@lvigi
 ## Install
 
 ```bash
-pnpm add github:benpptung/http-error
+pnpm add @lvigil/http-error
 ```
 
 ## Usage
