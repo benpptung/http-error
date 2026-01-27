@@ -1,29 +1,41 @@
 {
   "name": "http-error",
-  "description": "create error object with http status code for express server",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "HTTP Error based on @lvigil/err",
+  "type": "module",
   "author": "Ben P.P. Tung",
-  "bugs": {
-    "url": "https://github.com/benpptung/http-error/issues"
-  },
-  "homepage": "https://github.com/benpptung/http-error#readme",
-  "keywords": [
-    "error",
-    "express"
-  ],
   "license": "MIT",
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/benpptung/http-error.git"
   },
+  "exports": {
+    ".": "./src/http-err.js"
+  },
+  "keywords": [
+    "error",
+    "express",
+    "http",
+    "err",
+    "Err",
+    "OnErr",
+    "error-handling",
+    "message-history",
+    "context",
+    "logging",
+    "debugging",
+    "flat",
+    "rethrow",
+    "error-wrapper"
+  ],
   "scripts": {
-    "eslint": "TIMING=1 eslint . --ignore-pattern node_modules/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/*.js"
   },
   "devDependencies": {
-    "eslint": "^4.5.0",
-    "eslint-config-less": "github:benpptung/eslint-config-less",
-    "eslint-plugin-node": "^5.1.1"
+    "eslint": "9.39.1",
+    "eslint-plugin-n": "16.6.2"
+  },
+  "dependencies": {
+    "@lvigil/err": "^1.3.0"
   }
 }
