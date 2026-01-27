@@ -11,207 +11,164 @@ export { Err, OnErr }
  * }} HttpError
  */
 
-/**
- * Creates an HTTP error with status code and optional context/flags.
- * Invalid status codes default to 500.
- * @param {number|string} status - HTTP status code (400-599)
- * @param {Object|null} [context_dict] - Context for debugging
- * @param {Object|string|null} [flag_dict] - Flags for program logic
- * @returns {HttpError}
- */
+// --- Name generation ---
+
+const ADD_ERR_SUFFIX = new Set([410, 418])  // Gone, Teapot - 負面語義不夠強
+
+
+// --- Generate all functions ---
+
+const HTTP_STATUSES = Object.keys(STATUS).map(Number).filter(s => s >= 400 && s <= 599)
+
+const http_err_dict = {}
+const on_http_err_dict ={}
+
+for (const status of HTTP_STATUSES) {
+  http_err_dict[status_to_name(status)] = create_HttpErr(status)
+  on_http_err_dict['OnEr' + status_to_name(status, { addErrSuffix: false })] = create_OnHttpErr(status)
+}
+
+// --- Core function ---
+
 export function HttpErr(status, context_dict = null, flag_dict = null) {
   status = Number(status)
-  if (status < 400 || status > 599 || !STATUS[status]) 
+  if (status < 400 || status > 599 || !STATUS[status])
     status = 500
-  
+
   return Err(STATUS[status], context_dict, flag_dict).f({status})
-  
 }
 
-// 4xx Client Errors
+// --- 4xx Client Errors ---
 
-/** 
- * @param {Object|null} [context_dict] 
- * @param {Object|string|null} [flag_dict] 
- * @returns {HttpError} 
- **/
-export function BadRequest(context_dict, flag_dict) { 
-  return HttpErr(400, context_dict, flag_dict)
+export const {
+  BadRequest,
+  Unauthorized,
+  PaymentRequired,
+  Forbidden,
+  NotFound,
+  MethodNotAllowed,
+  NotAcceptable,
+  ProxyAuthRequired,
+  ReqTimeout,
+  Conflict,
+  GoneErr,
+  LengthRequired,
+  PreconditionFailed,
+  PayloadTooLarge,
+  UriTooLong,
+  UnsupportedMediaType,
+  RangeNotSatisfiable,
+  ExpectationFailed,
+  TeapotErr,
+  MisdirectedReq,
+  UnprocessableEntity,
+  Locked,
+  FailedDependency,
+  TooEarly,
+  UpgradeRequired,
+  PreconditionRequired,
+  TooManyReqs,
+  ReqHeaderFldTooLarge,
+  UnavailableForLegalReasons
+} = http_err_dict
+
+// --- 5xx Server Errors ---
+
+export const {
+  InternalServerError,
+  NotImplemented,
+  BadGateway,
+  ServiceUnavailable,
+  GatewayTimeout,
+  HttpVersionNotSupported,
+  VariantAlsoNegotiates,
+  InsufficientStorage,
+  LoopDetected,
+  BandwidthLimitExceeded,
+  NotExtended,
+  NetworkAuthRequired
+} = http_err_dict
+
+// --- OnEr wrappers (all) ---
+
+export const {
+  // 4xx
+  OnErBadRequest,
+  OnErUnauthorized,
+  OnErPaymentRequired,
+  OnErForbidden,
+  OnErNotFound,
+  OnErMethodNotAllowed,
+  OnErNotAcceptable,
+  OnErProxyAuthRequired,
+  OnErReqTimeout,
+  OnErConflict,
+  OnErGone,
+  OnErLengthRequired,
+  OnErPreconditionFailed,
+  OnErPayloadTooLarge,
+  OnErUriTooLong,
+  OnErUnsupportedMediaType,
+  OnErRangeNotSatisfiable,
+  OnErExpectationFailed,
+  OnErTeapot,
+  OnErMisdirectedReq,
+  OnErUnprocessableEntity,
+  OnErLocked,
+  OnErFailedDependency,
+  OnErTooEarly,
+  OnErUpgradeRequired,
+  OnErPreconditionRequired,
+  OnErTooManyReqs,
+  OnErReqHeaderFldTooLarge,
+  OnErUnavailableForLegalReasons,
+  // 5xx
+  OnErInternalServerError,
+  OnErNotImplemented,
+  OnErBadGateway,
+  OnErServiceUnavailable,
+  OnErGatewayTimeout,
+  OnErHttpVersionNotSupported,
+  OnErVariantAlsoNegotiates,
+  OnErInsufficientStorage,
+  OnErLoopDetected,
+  OnErBandwidthLimitExceeded,
+  OnErNotExtended,
+  OnErNetworkAuthRequired
+} = on_http_err_dict
+
+
+function status_to_name(status, { addErrSuffix = true } = {}) {
+  let name = STATUS[status]
+    .replace(/[^a-zA-Z ]/g, '')
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('')
+    .replace(/Authentication/g, 'Auth')
+    .replace(/Request/g, 'Req')
+    .replace(/Fields/g, 'Fld')
+    .replace(/^ImATeapot$/, 'Teapot')
+    .replace(/^BadReq$/, 'BadRequest')
+
+  if (addErrSuffix && ADD_ERR_SUFFIX.has(status)) name += 'Err'
+
+  return name
 }
 
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function Unauthorized(context_dict, flag_dict) { return HttpErr(401, context_dict, flag_dict) }
+// --- Factory functions ---
 
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function PaymentRequired(context_dict, flag_dict) { return HttpErr(402, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function Forbidden(context_dict, flag_dict) { return HttpErr(403, context_dict, flag_dict) }
-
-/** 
- * @param {Object|null} [context_dict] 
- * @param {Object|string|null} [flag_dict] 
- * @returns {HttpError} 
- **/
-export function NotFound(context_dict, flag_dict) { 
-  return HttpErr(404, context_dict, flag_dict) 
+function create_HttpErr(status) {
+  return (context_dict, flag_dict) => HttpErr(status, context_dict, flag_dict)
 }
 
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function MethodNotAllowed(context_dict, flag_dict) { return HttpErr(405, context_dict, flag_dict) }
+function create_OnHttpErr(status) {
+  return (err, context_dict, flag_dict) => {
+    const er = OnErr(err, context_dict, flag_dict)
+      .f({ status })
+      .m(STATUS[status]) // keep the message history
 
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function NotAcceptable(context_dict, flag_dict) { return HttpErr(406, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function ProxyAuthRequired(context_dict, flag_dict) { return HttpErr(407, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function RequestTimeout(context_dict, flag_dict) { return HttpErr(408, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function Conflict(context_dict, flag_dict) { return HttpErr(409, context_dict, flag_dict) }
-
-/** 
- * @param {Object|null} [context_dict] 
- * @param {Object|string|null} [flag_dict] 
- * @returns {HttpError} 
- **/
-export function GoneErr(context_dict, flag_dict) { 
-  return HttpErr(410, context_dict, flag_dict) 
+    // HttpErr.message MUST keep consistent with STATUS[status]
+    er.message = STATUS[status]
+    return er
+  }
 }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function LengthRequired(context_dict, flag_dict) { return HttpErr(411, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function PreconditionFailed(context_dict, flag_dict) { return HttpErr(412, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function PayloadTooLarge(context_dict, flag_dict) { return HttpErr(413, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function URITooLong(context_dict, flag_dict) { return HttpErr(414, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function UnsupportedMediaType(context_dict, flag_dict) { return HttpErr(415, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function RangeNotSatisfiable(context_dict, flag_dict) { return HttpErr(416, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function ExpectationFailed(context_dict, flag_dict) { return HttpErr(417, context_dict, flag_dict) }
-
-/** 
- * @param {Object|null} [context_dict] 
- * @param {Object|string|null} [flag_dict] 
- * @returns {HttpError} */
-export function TeapotErr(context_dict, flag_dict) { 
-  return HttpErr(418, context_dict, flag_dict) 
-}
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function MisdirectedRequest(context_dict, flag_dict) { return HttpErr(421, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function UnprocessableEntity(context_dict, flag_dict) { return HttpErr(422, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function Locked(context_dict, flag_dict) { return HttpErr(423, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function FailedDependency(context_dict, flag_dict) { return HttpErr(424, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function TooEarly(context_dict, flag_dict) { return HttpErr(425, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function UpgradeRequired(context_dict, flag_dict) { return HttpErr(426, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function PreconditionRequired(context_dict, flag_dict) { return HttpErr(428, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function TooManyRequests(context_dict, flag_dict) { return HttpErr(429, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function HeaderFieldsTooLarge(context_dict, flag_dict) { return HttpErr(431, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function UnavailableForLegalReasons(context_dict, flag_dict) { return HttpErr(451, context_dict, flag_dict) }
-
-// 5xx Server Errors
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function InternalServerError(context_dict, flag_dict) { return HttpErr(500, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function NotImplemented(context_dict, flag_dict) { return HttpErr(501, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function BadGateway(context_dict, flag_dict) { return HttpErr(502, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function ServiceUnavailable(context_dict, flag_dict) { return HttpErr(503, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function GatewayTimeout(context_dict, flag_dict) { return HttpErr(504, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function HTTPVersionNotSupported(context_dict, flag_dict) { return HttpErr(505, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function VariantAlsoNegotiates(context_dict, flag_dict) { return HttpErr(506, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function InsufficientStorage(context_dict, flag_dict) { return HttpErr(507, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function LoopDetected(context_dict, flag_dict) { return HttpErr(508, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function NotExtended(context_dict, flag_dict) { return HttpErr(510, context_dict, flag_dict) }
-
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function NetworkAuthRequired(context_dict, flag_dict) { return HttpErr(511, context_dict, flag_dict) }
-
-// OnEr wrappers - 常用的
-
-/** @param {Error} err 
- * @param {Object|null} [context_dict] 
- * @param {Object|string|null} [flag_dict] 
- * @returns {HttpError} 
- **/
-export function OnErBadRequest(err, context_dict, flag_dict) { 
-  return OnErr(err, context_dict, flag_dict).f({ status: 400 }) 
-}
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErUnauthorized(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 401 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErForbidden(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 403 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErNotFound(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 404 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErConflict(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 409 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErUnprocessableEntity(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 422 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErTooManyRequests(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 429 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErInternalServerError(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 500 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErBadGateway(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 502 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErServiceUnavailable(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 503 }) }
-
-/** @param {Error} err @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function OnErGatewayTimeout(err, context_dict, flag_dict) { return OnErr(err, context_dict, flag_dict).f({ status: 504 }) }

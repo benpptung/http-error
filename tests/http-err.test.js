@@ -88,7 +88,7 @@ describe('HttpErr', () => {
       assert.strictEqual(err.msgs[0], 'Not Found')
     })
 
-    it('should have message equal to STATUS[status] and fixed at msgs[0] if Not prefix with OnEr', () => {
+    it('should have message equal to STATUS[status] and fixed at msgs[0]', () => {
       const err = HttpErr(403)
       assert.strictEqual(err.message, 'Forbidden')
       assert.strictEqual(err.msgs[0], 'Forbidden')
@@ -98,12 +98,12 @@ describe('HttpErr', () => {
       assert.deepStrictEqual(err.msgs, ['Forbidden', 'access denied', 'check permission'])
     })
 
-    it('should respect original Error message if using OnEr<Name> error constructor', () => {
+    it('should replace original Error message by Status message. if using OnEr<Name> error constructor', () => {
       const e = new Error('not found')
       const er = OnErNotFound(e)
       assert.strictEqual(e, er)
-      assert.strictEqual(er.message, 'not found')
-      assert.strictEqual(er.msgs.length, 1)
+      assert.strictEqual(er.message, 'Not Found')
+      assert.strictEqual(er.msgs.length, 2)
       assert.strictEqual(er.status, 404)
     })
 
@@ -198,7 +198,7 @@ describe('OnEr<Name> wrappers', () => {
     it('should preserve and append msgs', () => {
       const e = new Error('original message')
       const er = OnErNotFound(e).m('wrapped once').m('wrapped twice')
-      assert.deepStrictEqual(er.msgs, ['original message', 'wrapped once', 'wrapped twice'])
+      assert.deepStrictEqual(er.msgs, ['original message', 'Not Found', 'wrapped once', 'wrapped twice'])
     })
   })
 })
