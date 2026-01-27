@@ -42,6 +42,8 @@ All errors have `.status` property.
 
 `err.message` is fixed to HTTP status text (e.g. "Not Found"), stored at `msgs[0]`. Use `.m()` to append messages for debugging.
 
+**Exception:** `OnEr<Name>` wrappers (e.g. `OnErNotFound`) respect the original `error.message` - they only ensure `.status` is set.
+
 ```js
 throw NotFound({ userId }).m('user lookup failed')
 // err.message === 'Not Found'
