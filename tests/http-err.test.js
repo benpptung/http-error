@@ -7,38 +7,69 @@ import {
 
 describe('HttpErr', () => {
 
-  describe('status handling', () => {
+  describe('status', () => {
 
-    it('should use valid status code (400-599)', () => {
+    it('should accept valid status code (400-599)', () => {
       const err = HttpErr(404)
       assert.strictEqual(err.status, 404)
-      assert.strictEqual(err.message, 'Not Found')
     })
 
     it('should default to 500 for invalid status', () => {
       assert.strictEqual(HttpErr(200).status, 500)
+      assert.strictEqual(HttpErr(399).status, 500)
       assert.strictEqual(HttpErr(600).status, 500)
-      assert.strictEqual(HttpErr(499).status, 500)
     })
 
     it('should convert string status to number', () => {
       const err = HttpErr('403')
       assert.strictEqual(err.status, 403)
+    })
+  })
+
+  describe('message', () => {
+
+    it('should equal STATUS[status]', () => {
+      assert.strictEqual(HttpErr(400).message, 'Bad Request')
+      assert.strictEqual(HttpErr(404).message, 'Not Found')
+      assert.strictEqual(HttpErr(500).message, 'Internal Server Error')
+    })
+
+    it('should remain unchanged after calling .m()', () => {
+      const err = HttpErr(403)
+      err.m('access denied').m('check permission')
       assert.strictEqual(err.message, 'Forbidden')
+    })
+  })
+
+  describe('message history (msgs)', () => {
+
+    it('should be an array', () => {
+      const err = HttpErr(404)
+      assert.ok(Array.isArray(err.msgs))
+    })
+
+    it('should start with STATUS[status] as first element', () => {
+      const err = HttpErr(404)
+      assert.strictEqual(err.msgs[0], 'Not Found')
+      assert.strictEqual(err.msgs.length, 1)
+    })
+
+    it('should append messages via .m() in chronological order', () => {
+      const err = HttpErr(403)
+      err.m('access denied').m('check permission')
+      assert.deepStrictEqual(err.msgs, ['Forbidden', 'access denied', 'check permission'])
     })
   })
 
   describe('context_dict', () => {
 
-    it('should store context_dict in err.original', () => {
-      const userId = 123
-      const path = '/admin'
-      const err = HttpErr(403, { userId, path })
+    it('should store in err.original', () => {
+      const err = HttpErr(403, { userId: 123, path: '/admin' })
       assert.strictEqual(err.original.userId, 123)
       assert.strictEqual(err.original.path, '/admin')
     })
 
-    it('should handle null context_dict', () => {
+    it('should handle null', () => {
       const err = HttpErr(404, null)
       assert.ok(err.original)
     })
@@ -46,68 +77,36 @@ describe('HttpErr', () => {
 
   describe('flag_dict', () => {
 
-    it('should attach flag_dict properties to err', () => {
+    it('should attach properties to err', () => {
       const err = HttpErr(403, null, { code: 'NO_PERMISSION' })
       assert.strictEqual(err.code, 'NO_PERMISSION')
     })
 
-    it('should always include status in flags', () => {
-      const err = HttpErr(404, null, { code: 'USER_NOT_FOUND' })
-      assert.strictEqual(err.status, 404)
-      assert.strictEqual(err.code, 'USER_NOT_FOUND')
-    })
-
-    it('should not override existing status in flag_dict', () => {
+    it('should not override status', () => {
       const err = HttpErr(404, null, { status: 999 })
       assert.strictEqual(err.status, 404)
     })
 
-    it('should support string flag_dict as key-mirror', () => {
+    it('should support string as key-mirror', () => {
       const err = HttpErr(404, null, 'USER_NOT_FOUND')
       assert.strictEqual(err.USER_NOT_FOUND, 'USER_NOT_FOUND')
-      assert.strictEqual(err.status, 404)
     })
 
-    it('should support key-mirror in common errors', () => {
+    it('should work with shorthand functions', () => {
       assert.strictEqual(NotFound(null, 'USER_NOT_FOUND').USER_NOT_FOUND, 'USER_NOT_FOUND')
       assert.strictEqual(BadRequest(null, 'INVALID_INPUT').INVALID_INPUT, 'INVALID_INPUT')
       assert.strictEqual(Forbidden(null, 'NO_PERMISSION').NO_PERMISSION, 'NO_PERMISSION')
     })
   })
 
-  describe('error instance', () => {
+  describe('chainable methods', () => {
 
     it('should return Error instance', () => {
       const err = HttpErr(500)
       assert.ok(err instanceof Error)
     })
 
-    it('should have msgs array with message', () => {
-      const err = HttpErr(404)
-      assert.ok(Array.isArray(err.msgs))
-      assert.strictEqual(err.msgs[0], 'Not Found')
-    })
-
-    it('should have message equal to STATUS[status] and fixed at msgs[0]', () => {
-      const err = HttpErr(403)
-      assert.strictEqual(err.message, 'Forbidden')
-      assert.strictEqual(err.msgs[0], 'Forbidden')
-      err.m('access denied').m('check permission')
-      assert.strictEqual(err.message, 'Forbidden')
-      assert.strictEqual(err.msgs[0], 'Forbidden')
-      assert.deepStrictEqual(err.msgs, ['Forbidden', 'access denied', 'check permission'])
-    })
-
-    it('should replace original Error message by Status message. if using OnEr<Name> error constructor', () => {
-      const e = new Error('not found')
-      const er = OnErNotFound(e)
-      assert.strictEqual(e, er)
-      assert.strictEqual(er.message, 'Not Found')
-      assert.strictEqual(er.msgs.length, 2)
-      assert.strictEqual(er.status, 404)
-    })
-
-    it('should have chainable methods m, f, c', () => {
+    it('should have m, f, c methods', () => {
       const err = HttpErr(404)
       assert.strictEqual(typeof err.m, 'function')
       assert.strictEqual(typeof err.f, 'function')
@@ -121,12 +120,12 @@ describe('OnEr<Name> wrappers', () => {
   describe('instance identity', () => {
 
     it('should return same Error instance', () => {
-      const e = new Error('original error')
+      const e = new Error('original')
       const er = OnErBadRequest(e)
       assert.strictEqual(er, e)
     })
 
-    it('should return same instance for all OnErr wrappers', () => {
+    it('should work for all wrappers', () => {
       const e1 = new Error('test')
       const e2 = new Error('test')
       const e3 = new Error('test')
@@ -138,19 +137,81 @@ describe('OnEr<Name> wrappers', () => {
     })
   })
 
-  describe('status flag', () => {
-
-    it('should attach status via .f()', () => {
-      const e = new Error('not found')
-      const er = OnErNotFound(e)
-      assert.strictEqual(er.status, 404)
-    })
+  describe('status', () => {
 
     it('should attach correct status for each wrapper', () => {
       assert.strictEqual(OnErBadRequest(new Error()).status, 400)
       assert.strictEqual(OnErNotFound(new Error()).status, 404)
       assert.strictEqual(OnErForbidden(new Error()).status, 403)
       assert.strictEqual(OnErInternalServerError(new Error()).status, 500)
+    })
+  })
+
+  describe('message', () => {
+
+    it('should replace original message with STATUS[status]', () => {
+      const e = new Error('db connection failed')
+      const er = OnErInternalServerError(e)
+      assert.strictEqual(er.message, 'Internal Server Error')
+    })
+
+    it('should remain unchanged after calling .m()', () => {
+      const e = new Error('original')
+      const er = OnErNotFound(e).m('additional info')
+      assert.strictEqual(er.message, 'Not Found')
+    })
+  })
+
+  describe('message history (msgs)', () => {
+
+    it('should preserve original message as first element', () => {
+      const e = new Error('db error')
+      const er = OnErInternalServerError(e)
+      assert.strictEqual(er.msgs[0], 'db error')
+    })
+
+    it('should append STATUS[status] as second element', () => {
+      const e = new Error('db error')
+      const er = OnErInternalServerError(e)
+      assert.strictEqual(er.msgs[1], 'Internal Server Error')
+      assert.strictEqual(er.msgs.length, 2)
+    })
+
+    it('should maintain chronological order regardless of constructor type', () => {
+      // HttpErr: starts with STATUS[status]
+      const err1 = HttpErr(404).m('first').m('second')
+      assert.deepStrictEqual(err1.msgs, ['Not Found', 'first', 'second'])
+
+      // OnEr<Name>: starts with original message, then STATUS[status]
+      const err2 = OnErNotFound(new Error('original')).m('first').m('second')
+      assert.deepStrictEqual(err2.msgs, ['original', 'Not Found', 'first', 'second'])
+    })
+
+    it('should append via .m() after STATUS[status]', () => {
+      const e = new Error('original message')
+      const er = OnErNotFound(e).m('wrapped once').m('wrapped twice')
+      assert.deepStrictEqual(er.msgs, ['original message', 'Not Found', 'wrapped once', 'wrapped twice'])
+    })
+  })
+
+  describe('context_dict merging', () => {
+
+    it('should merge with old values winning', () => {
+      const e = new Error('test')
+      OnErBadRequest(e, { userId: 1 })
+      OnErBadRequest(e, { userId: 2, path: '/api' })
+      assert.strictEqual(e.original.userId, 1)
+      assert.strictEqual(e.original.path, '/api')
+    })
+  })
+
+  describe('flag_dict merging', () => {
+
+    it('should merge with new values winning', () => {
+      const e = new Error('test')
+      e.code = 'OLD_CODE'
+      OnErBadRequest(e, null, { code: 'NEW_CODE' })
+      assert.strictEqual(e.code, 'NEW_CODE')
     })
   })
 
@@ -169,36 +230,6 @@ describe('OnEr<Name> wrappers', () => {
       const er = OnErNotFound('some string')
       assert.ok(er instanceof Error)
       assert.strictEqual(er.status, 404)
-    })
-  })
-
-  describe('context_dict merging (old wins)', () => {
-
-    it('should preserve original context when merging', () => {
-      const e = new Error('test')
-      OnErBadRequest(e, { userId: 1 })
-      OnErBadRequest(e, { userId: 2, path: '/api' })
-      assert.strictEqual(e.original.userId, 1)
-      assert.strictEqual(e.original.path, '/api')
-    })
-  })
-
-  describe('flag_dict merging (new wins)', () => {
-
-    it('should override flags with new values', () => {
-      const e = new Error('test')
-      e.code = 'OLD_CODE'
-      OnErBadRequest(e, null, { code: 'NEW_CODE' })
-      assert.strictEqual(e.code, 'NEW_CODE')
-    })
-  })
-
-  describe('msgs accumulation', () => {
-
-    it('should preserve and append msgs', () => {
-      const e = new Error('original message')
-      const er = OnErNotFound(e).m('wrapped once').m('wrapped twice')
-      assert.deepStrictEqual(er.msgs, ['original message', 'Not Found', 'wrapped once', 'wrapped twice'])
     })
   })
 })
