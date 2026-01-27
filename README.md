@@ -52,7 +52,7 @@ throw NotFound({ userId }).m('user lookup failed')
 
 ```js
 const e = new Error('db connection failed')
-throw OnErInternalServerError(e)
+throw OnErInternalServerErr(e)
 // err.message === 'Internal Server Error'
 // err.msgs === ['db connection failed', 'Internal Server Error']
 ```
