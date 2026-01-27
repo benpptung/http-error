@@ -88,6 +88,16 @@ describe('HttpErr', () => {
       assert.strictEqual(err.msgs[0], 'Not Found')
     })
 
+    it('should have message equal to STATUS[status] and fixed at msgs[0]', () => {
+      const err = HttpErr(403)
+      assert.strictEqual(err.message, 'Forbidden')
+      assert.strictEqual(err.msgs[0], 'Forbidden')
+      err.m('access denied').m('check permission')
+      assert.strictEqual(err.message, 'Forbidden')
+      assert.strictEqual(err.msgs[0], 'Forbidden')
+      assert.deepStrictEqual(err.msgs, ['Forbidden', 'access denied', 'check permission'])
+    })
+
     it('should have chainable methods m, f, c', () => {
       const err = HttpErr(404)
       assert.strictEqual(typeof err.m, 'function')
