@@ -2,8 +2,11 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import {
   HttpErr, NotFound, BadRequest, Forbidden,
-  OnErBadRequest, OnErNotFound, OnErForbidden, OnErInternalServerErr
+  OnErBadRequest, OnErNotFound, OnErForbidden, OnErInternalServerErr,
+  OnErBadGateway, OnErGatewayTimeout, OnErInsufficientStorage
 } from '../src/http-err.js'
+import { STATUS_CODES as STATUS } from 'http'
+
 
 describe('HttpErr', () => {
 
@@ -185,6 +188,33 @@ describe('OnEr<Name> wrappers', () => {
       // OnEr<Name>: starts with original message, then STATUS[status]
       const err2 = OnErNotFound(new Error('original')).m('first').m('second')
       assert.deepStrictEqual(err2.msgs, ['original', 'Not Found', 'first', 'second'])
+
+      const err3 = new Error('original message')
+      const err4 = OnErBadGateway(err3)
+      const err5 = OnErGatewayTimeout(err4)
+      const err6 = OnErInsufficientStorage(err5)
+      const err7 = OnErBadRequest(err6)
+      const err8 = OnErBadGateway(err7)
+      const err9 = OnErForbidden(err8)
+
+      // Test that all variables reference the same instance
+      assert.strictEqual(err4, err3)
+      assert.strictEqual(err5, err3)
+      assert.strictEqual(err6, err3)
+      assert.strictEqual(err7, err3)
+      assert.strictEqual(err8, err3)
+      assert.strictEqual(err9, err3)
+
+      // Test msgs array maintains chronological order
+      assert.deepStrictEqual(err9.msgs, [
+        'original message',
+        STATUS[502], // Bad Gateway
+        STATUS[504], // Gateway Timeout
+        STATUS[507], // Insufficient Storage
+        STATUS[400], // Bad Request
+        STATUS[502], // Bad Gateway
+        STATUS[403] // Forbidden
+      ])
     })
 
     it('should append via .m() after STATUS[status]', () => {
