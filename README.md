@@ -43,8 +43,9 @@ All errors have `.status` property.
 `err.message` is fixed to HTTP status text (e.g. "Not Found"), stored at `msgs[0]`. Use `.m()` to append messages for debugging.
 
 ```js
-const err = NotFound({ userId })
-err.m('user lookup failed').m('check database')
+throw NotFound({ userId }).m('user lookup failed')
 // err.message === 'Not Found'
-// err.msgs === ['Not Found', 'user lookup failed', 'check database']
+// err.msgs === ['Not Found', 'user lookup failed']
 ```
+
+This package wraps [@lvigil/err](https://www.npmjs.com/package/@lvigil/err) to provide HTTP-specific errors for server applications. See [@lvigil/err](https://github.com/benpptung/err) for the full error API.
