@@ -11,7 +11,7 @@ pnpm add @lvigil/http-error
 ## Usage
 
 ```js
-import { NotFound, BadRequest, HttpErr, OnErNotFound } from 'http-error'
+import { NotFound, BadRequest, HttpErr, OnErNotFound } from '@lvigil/http-error'
 
 // 404
 if (!user) throw NotFound({ userId })
@@ -40,9 +40,7 @@ Shorthand for common HTTP errors:
 
 All errors have `.status` property.
 
-`err.message` is fixed to HTTP status text (e.g. "Not Found"), stored at `msgs[0]`. Use `.m()` to append messages for debugging.
-
-**Exception:** `OnEr<Name>` wrappers (e.g. `OnErNotFound`) respect the original `error.message` - they only ensure `.status` is set.
+`err.message` is always HTTP status text (e.g. "Not Found"). Use `.m()` to append messages for debugging.
 
 ```js
 throw NotFound({ userId }).m('user lookup failed')
@@ -50,4 +48,13 @@ throw NotFound({ userId }).m('user lookup failed')
 // err.msgs === ['Not Found', 'user lookup failed']
 ```
 
-This package wraps [@lvigil/err](https://www.npmjs.com/package/@lvigil/err) to provide HTTP-specific errors for server applications. See [@lvigil/err](https://github.com/benpptung/err) for the full error API.
+`OnEr<Name>` error instance also set `err.message` to HTTP status text, but preserve the original message in history:
+
+```js
+const e = new Error('db connection failed')
+throw OnErInternalServerError(e)
+// err.message === 'Internal Server Error'
+// err.msgs === ['db connection failed', 'Internal Server Error']
+```
+
+See [@lvigil/err](https://github.com/benpptung/err) for the full error API.
