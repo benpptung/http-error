@@ -1,6 +1,6 @@
 # http-error
 
-HTTP Error utilities based on @lvigil/err.
+HTTP Error utilities based on [@lvigil/err](https://www.npmjs.com/package/@lvigil/err).
 
 ## Install
 
