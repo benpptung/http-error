@@ -34,7 +34,7 @@ catch (err) {
 
 Shorthand for common HTTP errors:
 
-- `NotFound()`, `BadRequest()`, `Unauthorized()`, `Forbidden()`, `InternalServerError()`, etc.
+- `NotFound()`, `BadRequest()`, `Unauthorized()`, `Forbidden()`, `InternalServerErr()`, etc.
 
 - `OnErNotFound(err)`, `OnErBadRequest(err)`, etc. - Wrap existing errors
 

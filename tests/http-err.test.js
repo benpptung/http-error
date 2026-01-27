@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import {
   HttpErr, NotFound, BadRequest, Forbidden,
-  OnErBadRequest, OnErNotFound, OnErForbidden, OnErInternalServerError
+  OnErBadRequest, OnErNotFound, OnErForbidden, OnErInternalServerErr
 } from '../src/http-err.js'
 
 describe('HttpErr', () => {
@@ -133,7 +133,7 @@ describe('OnEr<Name> wrappers', () => {
       assert.strictEqual(OnErBadRequest(e1), e1)
       assert.strictEqual(OnErNotFound(e2), e2)
       assert.strictEqual(OnErForbidden(e3), e3)
-      assert.strictEqual(OnErInternalServerError(e4), e4)
+      assert.strictEqual(OnErInternalServerErr(e4), e4)
     })
   })
 
@@ -143,7 +143,7 @@ describe('OnEr<Name> wrappers', () => {
       assert.strictEqual(OnErBadRequest(new Error()).status, 400)
       assert.strictEqual(OnErNotFound(new Error()).status, 404)
       assert.strictEqual(OnErForbidden(new Error()).status, 403)
-      assert.strictEqual(OnErInternalServerError(new Error()).status, 500)
+      assert.strictEqual(OnErInternalServerErr(new Error()).status, 500)
     })
   })
 
@@ -151,7 +151,7 @@ describe('OnEr<Name> wrappers', () => {
 
     it('should replace original message with STATUS[status]', () => {
       const e = new Error('db connection failed')
-      const er = OnErInternalServerError(e)
+      const er = OnErInternalServerErr(e)
       assert.strictEqual(er.message, 'Internal Server Error')
     })
 
@@ -166,13 +166,13 @@ describe('OnEr<Name> wrappers', () => {
 
     it('should preserve original message as first element', () => {
       const e = new Error('db error')
-      const er = OnErInternalServerError(e)
+      const er = OnErInternalServerErr(e)
       assert.strictEqual(er.msgs[0], 'db error')
     })
 
     it('should append STATUS[status] as second element', () => {
       const e = new Error('db error')
-      const er = OnErInternalServerError(e)
+      const er = OnErInternalServerErr(e)
       assert.strictEqual(er.msgs[1], 'Internal Server Error')
       assert.strictEqual(er.msgs.length, 2)
     })

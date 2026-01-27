@@ -75,7 +75,7 @@ export const {
 // --- 5xx Server Errors ---
 
 export const {
-  InternalServerError,
+  InternalServerErr,
   NotImplemented,
   BadGateway,
   ServiceUnavailable,
@@ -123,7 +123,7 @@ export const {
   OnErReqHeaderFldTooLarge,
   OnErUnavailableForLegalReasons,
   // 5xx
-  OnErInternalServerError,
+  OnErInternalServerErr,
   OnErNotImplemented,
   OnErBadGateway,
   OnErServiceUnavailable,
@@ -147,6 +147,7 @@ function status_to_name(status, { addErrSuffix = true } = {}) {
     .replace(/Authentication/g, 'Auth')
     .replace(/Request/g, 'Req')
     .replace(/Fields/g, 'Fld')
+    .replace(/Error$/g, 'Err')
     .replace(/^ImATeapot$/, 'Teapot')
     .replace(/^BadReq$/, 'BadRequest')
 

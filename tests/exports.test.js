@@ -36,7 +36,7 @@ import {
   UnavailableForLegalReasons,
 
   // 5xx Server Errors
-  InternalServerError,
+  InternalServerErr,
   NotImplemented,
   BadGateway,
   ServiceUnavailable,
@@ -81,7 +81,7 @@ import {
   OnErUnavailableForLegalReasons,
 
   // OnEr 5xx
-  OnErInternalServerError,
+  OnErInternalServerErr,
   OnErNotImplemented,
   OnErBadGateway,
   OnErServiceUnavailable,
@@ -132,7 +132,7 @@ describe('Export naming spec', () => {
 
   describe('HttpErr shortcuts - 5xx', () => {
 
-    it('InternalServerError (500)', () => assert.strictEqual(typeof InternalServerError, 'function'))
+    it('InternalServerErr (500)', () => assert.strictEqual(typeof InternalServerErr, 'function'))
     it('NotImplemented (501)', () => assert.strictEqual(typeof NotImplemented, 'function'))
     it('BadGateway (502)', () => assert.strictEqual(typeof BadGateway, 'function'))
     it('ServiceUnavailable (503)', () => assert.strictEqual(typeof ServiceUnavailable, 'function'))
@@ -181,7 +181,7 @@ describe('Export naming spec', () => {
 
   describe('OnEr wrappers - 5xx', () => {
 
-    it('OnErInternalServerError (500)', () => assert.strictEqual(typeof OnErInternalServerError, 'function'))
+    it('OnErInternalServerErr (500)', () => assert.strictEqual(typeof OnErInternalServerErr, 'function'))
     it('OnErNotImplemented (501)', () => assert.strictEqual(typeof OnErNotImplemented, 'function'))
     it('OnErBadGateway (502)', () => assert.strictEqual(typeof OnErBadGateway, 'function'))
     it('OnErServiceUnavailable (503)', () => assert.strictEqual(typeof OnErServiceUnavailable, 'function'))
