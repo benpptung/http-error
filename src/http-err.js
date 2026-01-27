@@ -23,12 +23,9 @@ export function HttpErr(status, context_dict = null, flag_dict = null) {
   status = Number(status)
   if (status < 400 || status > 599 || !STATUS[status]) 
     status = 500
-
-  const message = STATUS[status]
   
-  flag_dict = { ...flag_dict, status }
+  return Err(STATUS[status], context_dict, flag_dict).f({status})
   
-  return Err(message, context_dict, flag_dict)
 }
 
 // 4xx Client Errors
@@ -51,8 +48,14 @@ export function PaymentRequired(context_dict, flag_dict) { return HttpErr(402, c
 /** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
 export function Forbidden(context_dict, flag_dict) { return HttpErr(403, context_dict, flag_dict) }
 
-/** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
-export function NotFound(context_dict, flag_dict) { return HttpErr(404, context_dict, flag_dict) }
+/** 
+ * @param {Object|null} [context_dict] 
+ * @param {Object|string|null} [flag_dict] 
+ * @returns {HttpError} 
+ **/
+export function NotFound(context_dict, flag_dict) { 
+  return HttpErr(404, context_dict, flag_dict) 
+}
 
 /** @param {Object|null} [context_dict] @param {Object|string|null} [flag_dict] @returns {HttpError} */
 export function MethodNotAllowed(context_dict, flag_dict) { return HttpErr(405, context_dict, flag_dict) }
