@@ -25,7 +25,7 @@ const on_http_err_dict ={}
 
 for (const status of HTTP_STATUSES) {
   http_err_dict[status_to_name(status)] = create_HttpErr(status)
-  on_http_err_dict['OnEr' + status_to_name(status, { addErrSuffix: false })] = create_OnHttpErr(status)
+  on_http_err_dict['OnEr' + status_to_name(status, { is_HttpErr: false })] = create_OnHttpErr(status)
 }
 
 // --- Core function ---
@@ -138,7 +138,7 @@ export const {
 } = on_http_err_dict
 
 
-function status_to_name(status, { addErrSuffix = true } = {}) {
+function status_to_name(status, { is_HttpErr = true } = {}) {
   let name = STATUS[status]
     .replace(/[^a-zA-Z ]/g, '')
     .split(' ')
@@ -151,7 +151,7 @@ function status_to_name(status, { addErrSuffix = true } = {}) {
     .replace(/^ImATeapot$/, 'Teapot')
     .replace(/^BadReq$/, 'BadRequest')
 
-  if (addErrSuffix && ADD_ERR_SUFFIX.has(status)) name += 'Err'
+  if (is_HttpErr && ADD_ERR_SUFFIX.has(status)) name += 'Err'
 
   return name
 }
