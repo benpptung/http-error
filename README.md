@@ -58,3 +58,5 @@ throw OnErInternalServerErr(e)
 ```
 
 See [@lvigil/err](https://github.com/benpptung/err) for the full error API.
+
+See `src/http-err.js` exports for the full list of HTTP errors.
